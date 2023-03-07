@@ -3,12 +3,12 @@ const { DataTypes } = require("sequelize");
 
 const Venda = sequelize.define("Venda", {
     data_de_criacao: {
-        type: DataTypes.ARRAY,
+        type: DataTypes.STRING,
         allowNull: false,
     },
     data_de_encerramento:{
-        type: DataTypes.ARRAY,
-        allowNull: true,
+        type: DataTypes.STRING,
+        allowNull: false,
     },
     nome_cliente:{
         type: DataTypes.STRING,
@@ -24,6 +24,7 @@ const Venda = sequelize.define("Venda", {
     },
     status_pagamento:{
         type: DataTypes.BOOLEAN,
+        defaultValue: false
     },
     status_pedido:{
         type: DataTypes.STRING,
