@@ -1,5 +1,21 @@
 const VendasModel = require("../models/Venda");
 
+function calcularLucro(valorRecebido, custo)
+{
+    let lucroCalc = (Number(valorRecebido) - Number(custo)).toFixed(2);
+
+    return lucroCalc;
+}
+
+function formatarDatas(data)
+{
+    let [dia, mes, ano] = data.split("/");
+
+    return {
+        dia, mes, ano
+    }
+}
+
 class VendasController{
 
     static async cadastro(req, res)
@@ -16,7 +32,6 @@ class VendasController{
             status_pedido,
             valor_recebido,
             custo,
-            lucro,
             tipo,
             parceiro
             } = req.body;
@@ -52,20 +67,20 @@ class VendasController{
             return res.status(400).json({error: true, msg: "O campo 'Status de Pedido' é obrigatório"});
         }
 
-        if(!valor_recebido || typeof valor_recebido != "number")
+        if(!valor_recebido)
         {
             return res.status(400).json({error: true, msg: "O campo 'Valor Recebido' é obrigatório"});
         }
 
-        if(!custo || typeof custo != "number")
+        if(!custo)
         {
             return res.status(400).json({error: true, msg: "O campo 'Custo' é obrigatório"});
         }
 
-        if(!lucro || typeof lucro != "number")
-        {
-            return res.status(400).json({error: true, msg: "O campo 'Lucro' é obrigatório"});
-        }
+        // if(!lucro)
+        // {
+        //     return res.status(400).json({error: true, msg: "O campo 'Lucro' é obrigatório"});
+        // }
 
         if(!tipo || tipo =="")
         {
@@ -77,9 +92,18 @@ class VendasController{
             return res.status(400).json({error: true, msg: "O campo 'Parceiro' é obrigatório"});
         }
 
+        let dataCriacao = formatarDatas(data_de_criacao);
+        let dataEncerramento = data_de_encerramento.length > 0 ? formatarDatas(data_de_encerramento) : "";
+
         let novaVenda = await VendasModel.create({
             data_de_criacao,
             data_de_encerramento,
+            dia_criacao : dataCriacao.dia,
+            mes_criacao : dataCriacao.mes,
+            ano_criacao : dataCriacao.ano,
+            dia_encerramento : dataEncerramento.dia || "",
+            mes_encerramento : dataEncerramento.mes || "",
+            ano_encerramento : dataEncerramento.ano || "",
             nome_cliente,
             nb,
             canal,
@@ -87,7 +111,7 @@ class VendasController{
             status_pedido,
             valor_recebido,
             custo,
-            lucro,
+            lucro : calcularLucro(valor_recebido, custo),
             tipo,
             parceiro
         }
