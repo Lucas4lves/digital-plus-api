@@ -66,6 +66,10 @@ const Venda = sequelize.define("Venda", {
     parceiro:{
         type: DataTypes.STRING,
         allowNull: false
+    },
+    observacoes :{
+        type: DataTypes.STRING,
+        allowNull: true
     }
 })
 

@@ -33,7 +33,8 @@ class VendasController{
             valor_recebido,
             custo,
             tipo,
-            parceiro
+            parceiro,
+            observacoes
             } = req.body;
 
 
@@ -113,13 +114,50 @@ class VendasController{
             custo,
             lucro : calcularLucro(valor_recebido, custo),
             tipo,
-            parceiro
+            parceiro,
+            observacoes
         }
     )
 
         return res.status(201).json({created: novaVenda});
 
     }
+
+    static async deletar(req, res)
+    {
+        let { id } = req.params;
+
+        try{
+            let venda  = await VendasModel.findAll({
+                where :{
+                    id: id
+                }
+            })
+
+            await VendasModel.destroy({
+                where: {
+                    id: id
+                }
+            })
+
+            return res.status(200).json({deletado: true, venda: venda});
+        }catch(erro)
+        {
+            return res.status(400).json({erro: true, msg: erro})
+        }
+    }
+
+    static async getAllVendas(req, res)
+    {
+        let vendas = await VendasModel.findAll();
+        if(!vendas)
+        {
+            return res.status(400).json({erro: true, msg: "Vendas não encontradas"});
+        }
+
+        return res.status(200).json({vendas});
+    }
+
 }
 
 module.exports = VendasController;
