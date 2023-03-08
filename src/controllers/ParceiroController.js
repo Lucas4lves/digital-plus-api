@@ -7,6 +7,7 @@ class ParceiroController
         await ParceiroModel.sync();
 
         let { nome } = req.body;
+        nome = nome.toLowerCase();
         if(!nome)
         {
             return res.status(400).json({error: true});
