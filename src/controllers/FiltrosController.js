@@ -19,7 +19,6 @@ class FiltrosController
         }
 
         return res.status(200).json({result : resultado});
-
     }
 
     

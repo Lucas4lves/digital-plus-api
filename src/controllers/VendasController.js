@@ -158,6 +158,42 @@ class VendasController{
         return res.status(200).json({vendas});
     }
 
+    static async updateVenda(req,res){
+        const {id, valor_recebido_up,custo_up,data_encerramento_up,status_pagamento_up,status_pedido_up,observacoes_up} = req.body
+
+        const venda = await VendasModel.findOne({
+            where:{
+                id:id
+            }
+        })
+        let newLucro = valor_recebido_up - custo_up
+        let dataEncerramento = data_encerramento_up.length > 0 ? formatarDatas(data_encerramento_up) : "";
+        //update...
+        await venda.update({
+            valor_recebido:valor_recebido_up,
+            custo:custo_up,
+            lucro: newLucro,
+            data_de_encerramento:data_encerramento_up,
+            dia_encerramento:dataEncerramento.dia,
+            mes_encerramento:dataEncerramento.mes,
+            ano_encerramento:dataEncerramento.ano,
+            status_pagamento:status_pagamento_up,
+            status_pedido:status_pedido_up,
+            observacoes:observacoes_up
+
+
+        })
+        await venda.save() 
+
+        let new_venda = await VendasModel.findOne({
+            where:{
+                id:id
+            }
+        })
+        return res.status(200).json({update:new_venda})
+        
+    }
+
 }
 
 module.exports = VendasController;
