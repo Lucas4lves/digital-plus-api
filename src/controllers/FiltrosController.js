@@ -23,12 +23,8 @@ class FiltrosController
             return res.status(400).json({erro: true, msg: `Vendas pelo parceiro ${nome} não encontradas`});
         }
 
-<<<<<<< HEAD
-        return res.status(200).json({result : resultado});
-=======
         return res.status(200).json({encontrado: true, vendas: vendas});
 
->>>>>>> 4ff2b93e17d1d4877e61bd43e6b0cc4fdf43b8a9
     }
 
     static async vendasPorDia(req, res)
@@ -71,6 +67,30 @@ class FiltrosController
         })
     }
 
+    static async totalDeVendasDia(req, res)
+    {
+        let {count, rows} = await VendaModel.findAndCountAll({
+            where: {
+            [Op.and] :[
+                {dia_encerramento : new Date().getDate() < 10?  "0" + new Date().getDate() : (new Date().getDate()).toString()},
+                {mes_encerramento : new Date().getMonth() < 10?  "0" + (new Date().getMonth() + 1).toString() : (new Date().getMonth() + 1).toString()},
+                {ano_encerramento : (new Date().getFullYear()).toString()}
+            ] 
+            }
+        });
+        if(!count)
+        {
+            console.log(count);
+            return res.status(400).json({erro: true, msg: "Não foram encontradas vendas para o dia de hoje"});
+        }
+
+        if(!rows)
+        {
+            return res.status(400).json({erro: true, msg: "Não foram encontrados objetos para o dia de hoje"});
+        }
+
+        return res.status(200).json({encontrado: true, total: count});
+    }
 
     static async vendasPorMes(req, res)
     {
