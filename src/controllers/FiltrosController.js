@@ -92,6 +92,31 @@ class FiltrosController
         return res.status(200).json({encontrado: true, total: count});
     }
 
+
+    static async totalDeVendasMes(req, res)
+    {
+        let {count, rows} = await VendaModel.findAndCountAll({
+            where: {
+            [Op.and] :[
+                {mes_encerramento : new Date().getMonth() < 10?  "0" + (new Date().getMonth() + 1).toString() : (new Date().getMonth() + 1).toString()},
+                {ano_encerramento : (new Date().getFullYear()).toString()}
+            ] 
+            }
+        });
+        if(!count)
+        {
+            return res.status(400).json({erro: true, msg: "Não foram encontradas vendas para este mês"});
+        }
+
+        if(!rows)
+        {
+            return res.status(400).json({erro: true, msg: "Não foram encontrados objetos para este mês"});
+        }
+
+        return res.status(200).json({encontrado: true, total: count});
+    }
+
+
     static async vendasPorMes(req, res)
     {
         let { mes } = req.body;
@@ -115,6 +140,37 @@ class FiltrosController
         return res.status(200).json({encontrado: true, resultado: resultado});
     }
     
+    static async montarDashboard(req, res)
+    {
+        const queryLucroDia = await VendaModel.findAll({
+            where:{
+                [Op.and] :[
+                    {dia_encerramento : new Date().getDate() < 10?  "0" + new Date().getDate() : (new Date().getDate()).toString()},
+                    {mes_encerramento : new Date().getMonth() < 10?  "0" + (new Date().getMonth() + 1).toString() : (new Date().getMonth() + 1).toString()},
+                    {ano_encerramento : (new Date().getFullYear()).toString()}
+                ] 
+            }
+        })
+
+        if(!queryLucroDia)
+        {
+            return res.status(400).json({erro: true, msg: "Lucro diário não encontrado"})
+        }
+
+        const calcularLucro = vendas => vendas.map(venda => venda.lucro).reduce((a, b) => (Number(a) + Number(b)).toFixed(2));
+
+        const queryLucroMes = await VendaModel.findAll({
+            where:{
+                [Op.and] :[
+                    {mes_encerramento : new Date().getMonth() < 10?  "0" + (new Date().getMonth() + 1).toString() : (new Date().getMonth() + 1).toString()},
+                    {ano_encerramento : (new Date().getFullYear()).toString()}
+                ] 
+            }
+        })
+
+        return res.status(200).json({lucro_dia: calcularLucro(queryLucroDia), lucro_mes: calcularLucro(queryLucroMes)});
+    }
+
 }
 
 module.exports = FiltrosController;
