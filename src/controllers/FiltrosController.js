@@ -1,5 +1,3 @@
-const ParceiroModel = require("../models/Parceiro");
-const ServicoModel = require("../models/Servico");
 const VendaModel = require("../models/Venda");
 
 const { Op } = require("sequelize");
@@ -46,7 +44,7 @@ class FiltrosController
             return res.status(400).json({erro: true, msg: "Preencha todos os campos"});
         }
 
-        let resultado = await VendaModel.findAll({
+        let criadas = await VendaModel.findAll({
             where:{
                 [Op.and]:[
                     {dia_criacao: dia},
@@ -56,14 +54,25 @@ class FiltrosController
             }
         })
 
-        if(!resultado)
+        let encerradas = await VendaModel.findAll({
+            where:{
+                [Op.and]:[
+                    {dia_encerramento: dia},
+                    {mes_encerramento: mes},
+                    {ano_encerramento: ano},
+                ]
+            }
+        })
+
+        if(!criadas || !encerradas)
         {
             return res.status(400).json({erro: true, msg: "Não foram encontradas vendas para o dia de hoje"});
         }
 
         return res.status(200).json({
             encontrado : true,
-            resultados: resultado
+            criadas: criadas,
+            encerradas: encerradas
         })
     }
 
@@ -80,18 +89,16 @@ class FiltrosController
         });
         if(!count)
         {
-            console.log(count);
             return res.status(400).json({erro: true, msg: "Não foram encontradas vendas para o dia de hoje"});
         }
 
         if(!rows)
         {
-            return res.status(400).json({erro: true, msg: "Não foram encontrados objetos para o dia de hoje"});
+            return res.status(400).json({erro: true, msg: "Não foram encontrados vendas para o dia de hoje"});
         }
 
         return res.status(200).json({encontrado: true, total: count});
     }
-
 
     static async totalDeVendasMes(req, res)
     {
@@ -115,7 +122,6 @@ class FiltrosController
 
         return res.status(200).json({encontrado: true, total: count});
     }
-
 
     static async vendasPorMes(req, res)
     {
@@ -142,7 +148,7 @@ class FiltrosController
     
     static async montarDashboard(req, res)
     {
-        const queryLucroDia = await VendaModel.findAll({
+        const dia = await VendaModel.findAll({
             where:{
                 [Op.and] :[
                     {dia_encerramento : new Date().getDate() < 10?  "0" + new Date().getDate() : (new Date().getDate()).toString()},
@@ -152,14 +158,22 @@ class FiltrosController
             }
         })
 
-        if(!queryLucroDia)
+        if(!dia || dia.length == 0)
         {
             return res.status(400).json({erro: true, msg: "Lucro diário não encontrado"})
         }
+        const calcularLucro = vendas => pegarStatus(vendas, "em andamento").map(venda => venda.lucro).reduce((a, b) => (Number(a) + Number(b)).toFixed(2));
+        const pegarStatus = (vendas, filtro) => vendas.filter(venda => venda.status_pedido === filtro);
+        const vendaPorProduto = vendas => vendas.map(venda => 
+            {
+                return {
+                    id: venda.id,
+                    servico: venda.tipo,
+                    lucro: venda.lucro
+                }
+            });
 
-        const calcularLucro = vendas => vendas.map(venda => venda.lucro).reduce((a, b) => (Number(a) + Number(b)).toFixed(2));
-
-        const queryLucroMes = await VendaModel.findAll({
+        const mes = await VendaModel.findAll({
             where:{
                 [Op.and] :[
                     {mes_encerramento : new Date().getMonth() < 10?  "0" + (new Date().getMonth() + 1).toString() : (new Date().getMonth() + 1).toString()},
@@ -168,7 +182,18 @@ class FiltrosController
             }
         })
 
-        return res.status(200).json({lucro_dia: calcularLucro(queryLucroDia), lucro_mes: calcularLucro(queryLucroMes)});
+        if(!mes || mes.length == 0)
+        {
+            return res.status(400).json({erro: true, msg: "Lucro diário não encontrado"})
+        }
+
+        return res.status(200).json({
+            lucro_dia: calcularLucro(dia), 
+            lucro_mes: calcularLucro(mes),
+            por_produto_dia: vendaPorProduto(dia),
+            status_dia: pegarStatus(dia, "em andamento"),
+            status_mes: pegarStatus(mes, "em andamento")
+        });
     }
 
 }
