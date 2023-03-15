@@ -226,30 +226,25 @@ class FiltrosController
           
             return novoArray;
         }
-        const pegaPorMes = (query, mes, ano) => query.filter(venda => venda.mes_encerramento === mes && venda.ano_encerramento === ano);
-        let lucros = [];
-        for(let i = 0; i < arrayGPT.length; i++)
-        {
-            let temp = pegaPorMes(query, arrayGPT[i].m, arrayGPT[i].a);
-            let lucro_temp = 0;
-            temp.forEach(item => lucro_temp += Number(item.lucro));
-            lucros.push({mes: arrayGPT[i].m, ano: arrayGPT[i].a, lucro: lucro_temp.toString()});
-        }
+        // const pegaPorMes = (query, mes, ano) => query.filter(venda => venda.mes_encerramento === mes && venda.ano_encerramento === ano);
+        const pegarPorAno = (query, ano) => query.filter(venda => venda.ano_encerramento === ano);
+        let lucrosA= pegarPorAno(query, "2023").map(venda => venda.lucro).reduce((a,b) => Number(a) + Number(b));
+        let lucrosB = pegarPorAno(query, "2022").map(venda => venda.lucro).reduce((a,b) => Number(a) + Number(b));;
+        // for(let i = 0; i < arrayGPT.length; i++)
+        // {
+        //     let temp = pegaPorMes(query, arrayGPT[i].m, arrayGPT[i].a);
+        //     let lucro_temp = 0;
+        //     temp.forEach(item => lucro_temp += Number(item.lucro));
+        //     lucros.push({mes: arrayGPT[i].m, ano: arrayGPT[i].a, lucro: lucro_temp.toString()});
+        // }
 
-        res.json({resultado: lucros.sort((a, b) => a.mes < b.mes ? -1 : a.mes > b.mes? 1 : 0)});
+        res.json({resultado: {
+            ano1: lucrosA.toString(),
+            ano2: lucrosB.toString(),
+}});
     }
 
 }
 
 module.exports = FiltrosController;
 
-/**
- * let query = await VendaModel.findAll(
- * {
- *      where:{
- *              mes_encerramento:{
- *                    [Op.between]:[]
- *              }
- *            }
- * }) 
- */

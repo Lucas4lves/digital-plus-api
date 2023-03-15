@@ -40,8 +40,20 @@ class AdminController
       if(!senha){
         return res.status(400).json({erro:true,mensagem:"preencha todos os campos"})
       }
-      let result = await adminModel.findOne({email:input_email})
-      return res.status(200).json({result:result})
+      let result = await adminModel.findOne(
+        {
+          where: {
+            email:input_email
+          }
+        }
+      )
+
+        if(result.senha != senha)
+        {
+          return res.status(400).json({erro: true, msg: "Sua senha está incorreta!"})
+        }
+
+      return res.status(200).json({logado:true})
       
     }
 }

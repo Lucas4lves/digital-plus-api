@@ -1,6 +1,16 @@
 const express = require("express");
+const cors = require("cors")
 const sequelize = require("./db/Config");
 const PORT = 3000;
+const app = express();
+
+app.use(express.urlencoded({extended: true}))
+app.use((req, res, next) =>{
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "*");
+    app.use(cors())
+    next()
+})
 
 const ServicoRoute = require("./routes/ServicoRoute");
 const ParceiroRoute = require("./routes/ParceiroRoute");
@@ -9,9 +19,7 @@ const Admin = require("./models/Admin");
 const VendaRoute = require("./routes/VendaRoute");
 const FiltroRoute = require("./routes/FiltroRoute");
 
-const app = express();
 
-app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 
 const connect = async () =>{
